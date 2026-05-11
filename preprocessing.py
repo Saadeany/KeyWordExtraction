@@ -19,7 +19,7 @@ nltk.download('punkt',     quiet=True)
 nltk.download('punkt_tab', quiet=True)
 nltk.download('stopwords', quiet=True)
 nltk.download('wordnet',   quiet=True)
-nltk.download('averaged_perceptron_tagger', quiet=True)
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 nltk.download('omw-1.4',  quiet=True)
 
 from nltk.corpus import stopwords
@@ -70,33 +70,22 @@ def get_wordnet_pos(treebank_tag):
         return nltk.corpus.wordnet.NOUN
 
 def extract_phrases(tokens, pos_tags):
-    """Extract meaningful phrases using POS patterns."""
     phrases = []
     current_phrase = []
-    
-    # Pattern for adjective-noun and noun-noun phrases
-    for i, (token, pos) in enumerate(zip(tokens, pos_tags)):
-        # Start new phrase with adjective or noun
-        if pos.startswith(('JJ', 'NN')) and not current_phrase:
+
+    for token, pos in pos_tags:
+
+        if pos.startswith(('JJ', 'NN')):
             current_phrase.append(token)
-        # Continue phrase with adjective or noun
-        elif pos.startswith(('JJ', 'NN')) and current_phrase:
-            current_phrase.append(token)
-        # End phrase and start new one
-        elif pos.startswith(('JJ', 'NN')) and current_phrase:
-            if len(current_phrase) > 1:
-                phrases.append(' '.join(current_phrase))
-            current_phrase = [token]
-        # End phrase
+
         else:
             if len(current_phrase) > 1:
-                phrases.append(' '.join(current_phrase))
+                phrases.append('_'.join(current_phrase))
             current_phrase = []
-    
-    # Add final phrase
+
     if len(current_phrase) > 1:
-        phrases.append(' '.join(current_phrase))
-    
+        phrases.append('_'.join(current_phrase))
+
     return phrases
 
 def clean_text(text: str) -> str:
@@ -122,7 +111,7 @@ def clean_text(text: str) -> str:
     
     # Lemmatize with POS information and filter
     lemmatized_tokens = []
-    for token, pos in zip(tokens, pos_tags):
+    for token, pos in pos_tags:
         if (token not in enhanced_stopwords and 
             len(token) > 2 and 
             not token.isdigit()):
@@ -135,7 +124,7 @@ def clean_text(text: str) -> str:
     phrases = extract_phrases(tokens, pos_tags)
     
     # Combine tokens and phrases
-    all_tokens = lemmatized_tokens + [p.replace(' ', '_') for p in phrases]
+    all_tokens = lemmatized_tokens + phrases
     
     return " ".join(all_tokens)
 
