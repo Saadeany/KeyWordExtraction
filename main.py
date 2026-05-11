@@ -29,11 +29,16 @@ import subprocess
 from paths import DATASET, GEN_DIR, EVAL_DIR, ALL_INTERMEDIATE, ALL_EVAL_OUTPUTS
 
 PIPELINE = [
-    ("Step 1 — Preprocessing",                "preprocessing.py"),
-    ("Step 2 — TF-IDF Feature Extraction",    "TF_IDF.py"),
-    ("Step 3 — Word2Vec Embeddings",          "word_embeddings.py"),
-    ("Step 4 — Advanced Keyword Extraction",  "advanced_keyword_extraction.py"),
-    ("Step 5 — Evaluation & Comparison",      "evaluation.py"),
+    ("Step 1 — Enhanced Preprocessing",           "preprocessing.py"),
+    ("Step 2 — TF-IDF Feature Extraction",       "TF_IDF.py"),
+    ("Step 3 — Word2Vec Embeddings",             "word_embeddings.py"),
+    ("Step 4 — Advanced Keyword Extraction",     "advanced_keyword_extraction.py"),
+    ("Step 5 — Evaluation & Comparison",         "evaluation.py"),
+]
+
+# Simplified enhanced pipeline (just KeyBERT for state-of-the-art comparison)
+ENHANCED_PIPELINE = [
+    ("Step 6 — KeyBERT Extraction",             "keybert_model.py"),
 ]
 
 # ══════════════════════════════════════════════════════════════════════
@@ -54,7 +59,18 @@ if not os.path.exists(DATASET):
 
 print(f"\n  Dataset found : {DATASET}")
 print(f"  Python        : {sys.executable}")
-print(f"  Steps to run  : {len(PIPELINE)}\n")
+print(f"  Basic steps   : {len(PIPELINE)}")
+print(f"  Enhanced steps: {len(ENHANCED_PIPELINE)}")
+
+# Check for enhanced mode
+enhanced_mode = '--enhanced' in sys.argv or '-e' in sys.argv
+if enhanced_mode:
+    print(f"\n  🚀 RUNNING IN ENHANCED MODE")
+    print(f"  All optimization and advanced features enabled")
+else:
+    print(f"\n  📊 RUNNING IN BASIC MODE")
+    print(f"  Use --enhanced or -e for full features")
+print()
 
 # ══════════════════════════════════════════════════════════════════════
 # RUN EACH STEP
@@ -107,6 +123,55 @@ print(f"\n  [{EVAL_DIR}/]  — Evaluation outputs:")
 for f in ALL_EVAL_OUTPUTS:
     status = "OK" if os.path.exists(f) else "MISSING"
     print(f"    [{status:^7}]  {os.path.basename(f)}")
+
+# ══════════════════════════════════════════════════════════════════════
+# ENHANCED PIPELINE (if enabled)
+# ══════════════════════════════════════════════════════════════════════
+if enhanced_mode:
+    print("\n" + "=" * 65)
+    print("  ENHANCED PIPELINE — Advanced Features & Optimization")
+    print("=" * 65)
+    
+    enhanced_step_times = []
+    enhanced_start = time.time()
+    
+    for step_num, (step_name, script) in enumerate(ENHANCED_PIPELINE, start=len(PIPELINE)+1):
+        print("=" * 65)
+        print(f"  [{step_num}/{len(PIPELINE)+len(ENHANCED_PIPELINE)}]  {step_name}")
+        print(f"  Running: python {script}")
+        print("=" * 65)
+        
+        if not os.path.exists(script):
+            print(f"\n  [WARNING] Script not found: '{script}' - Skipping")
+            continue
+        
+        t0 = time.time()
+        try:
+            result = subprocess.run([sys.executable, script], 
+                                  capture_output=True, text=True, timeout=300)
+            elapsed = time.time() - t0
+            enhanced_step_times.append(elapsed)
+            
+            if result.returncode != 0:
+                print(f"\n  [WARNING] {script} failed with code {result.returncode}")
+                print(f"  Error: {result.stderr}")
+            else:
+                print(f"\n  Step completed in {elapsed:.1f}s")
+        except subprocess.TimeoutExpired:
+            print(f"\n  [TIMEOUT] {script} timed out after 5 minutes")
+        except Exception as e:
+            print(f"\n  [ERROR] Failed to run {script}: {e}")
+    
+    enhanced_total = time.time() - enhanced_start
+    
+    print("\n" + "=" * 65)
+    print("  ENHANCED PIPELINE SUMMARY")
+    print("=" * 65)
+    
+    print("\n  Enhanced step timings:")
+    for (name, _), t in zip(ENHANCED_PIPELINE, enhanced_step_times):
+        print(f"    {name:<44} {t:6.1f}s")
+    print(f"    {'ENHANCED TOTAL':<44} {enhanced_total:6.1f}s")
 
 print()
 print("=" * 65)
