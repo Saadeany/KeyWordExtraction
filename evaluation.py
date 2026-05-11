@@ -445,6 +445,10 @@ print("=" * 60)
 
 summary = pd.DataFrame({
     "Model"    : ["TF-IDF Baseline","Cosine Re-ranking (A)","KMeans Clustering (B)"],
+    "Accuracy" : [
+                 round((t_cm[0,0] + t_cm[1,1]) / t_cm.sum(), 4),
+                 round((c_cm[0,0] + c_cm[1,1]) / c_cm.sum(), 4),
+                 round((k_cm[0,0] + k_cm[1,1]) / k_cm.sum(), 4)],
     "Precision": [round(t_p,4), round(c_p,4), round(k_p,4)],
     "Recall"   : [round(t_r,4), round(c_r,4), round(k_r,4)],
     "F1-Score" : [round(t_f,4), round(c_f,4), round(k_f,4)],
