@@ -1,23 +1,3 @@
-"""
-╔══════════════════════════════════════════════════════════════════════╗
-║          PROJECT 5 — KEYWORD EXTRACTION SYSTEM                      ║
-║          STEP 5 : Evaluation & Comparison                            ║
-╠══════════════════════════════════════════════════════════════════════╣
-║  Input  : generated/advanced_keywords_results.csv                    ║
-║                                                                      ║
-║  Evaluates 3 methods against manual annotations:                     ║
-║    1. TF-IDF Baseline                                                ║
-║    2. Cosine Similarity Re-ranking  (Advanced A)                     ║
-║    3. KMeans Clustering             (Advanced B)                     ║
-║                                                                      ║
-║  Metrics:                                                            ║
-║    Precision / Recall / F1  |  Confusion Matrix  |  TP/FP/FN        ║
-║                                                                      ║
-║  Outputs -> evaluation_results/                                      ║
-║    evaluation_results.csv  +  fig1 ... fig9 .png                    ║
-╚══════════════════════════════════════════════════════════════════════╝
-"""
-
 import os
 import ast
 import warnings
@@ -77,7 +57,7 @@ MANUAL_ANNOTATIONS = {
 }
 
 # ══════════════════════════════════════════════════════════════════════
-# LOAD advanced_keywords_results.csv  (built by Step 4)
+# LOAD advanced_keywords_results.csv  
 # ══════════════════════════════════════════════════════════════════════
 print("=" * 60)
 print("  STEP 5 — Evaluation & Model Comparison")
@@ -443,25 +423,29 @@ print("\n" + "=" * 60)
 print("  FINAL COMPARISON SUMMARY")
 print("=" * 60)
 
+
+t_acc = round(sum(1 for f in tF if f > 0) / SAMPLE_SIZE, 4)
+c_acc = round(sum(1 for f in cF if f > 0) / SAMPLE_SIZE, 4)
+k_acc = round(sum(1 for f in kF if f > 0) / SAMPLE_SIZE, 4)
+
 summary = pd.DataFrame({
-    "Model"    : ["TF-IDF Baseline","Cosine Re-ranking (A)","KMeans Clustering (B)"],
-    "Accuracy" : [
-                 round((t_cm[0,0] + t_cm[1,1]) / t_cm.sum(), 4),
-                 round((c_cm[0,0] + c_cm[1,1]) / c_cm.sum(), 4),
-                 round((k_cm[0,0] + k_cm[1,1]) / k_cm.sum(), 4)],
-    "Precision": [round(t_p,4), round(c_p,4), round(k_p,4)],
-    "Recall"   : [round(t_r,4), round(c_r,4), round(k_r,4)],
-    "F1-Score" : [round(t_f,4), round(c_f,4), round(k_f,4)],
-    "Median F1": [round(float(np.median(tF)),4),
-                  round(float(np.median(cF)),4),
-                  round(float(np.median(kF)),4)],
-    "Std F1"   : [round(float(np.std(tF)),4),
-                  round(float(np.std(cF)),4),
-                  round(float(np.std(kF)),4)],
-    "TP/FP/FN" : [f"{t_TP}/{t_FP}/{t_FN}",
-                  f"{c_TP}/{c_FP}/{c_FN}",
-                  f"{k_TP}/{k_FP}/{k_FN}"],
+    "Model"     : ["TF-IDF Baseline","Cosine Re-ranking (A)","KMeans Clustering (B)"],
+    "Accuracy"  : [t_acc, c_acc, k_acc],   # doc-level hit rate (>=1 correct keyword)
+    "Precision" : [round(t_p,4), round(c_p,4), round(k_p,4)],
+    "Recall"    : [round(t_r,4), round(c_r,4), round(k_r,4)],
+    "F1-Score"  : [round(t_f,4), round(c_f,4), round(k_f,4)],
+    "Median F1" : [round(float(np.median(tF)),4),
+                   round(float(np.median(cF)),4),
+                   round(float(np.median(kF)),4)],
+    "Std F1"    : [round(float(np.std(tF)),4),
+                   round(float(np.std(cF)),4),
+                   round(float(np.std(kF)),4)],
+    "TP/FP/FN"  : [f"{t_TP}/{t_FP}/{t_FN}",
+                   f"{c_TP}/{c_FP}/{c_FN}",
+                   f"{k_TP}/{k_FP}/{k_FN}"],
 })
+print("  Note: Accuracy = Document Hit Rate")
+print("        (fraction of docs where model found >= 1 correct keyword)")
 print(summary.to_string(index=False))
 
 best   = summary["F1-Score"].max()
